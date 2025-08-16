@@ -1,0 +1,51 @@
+@startuml Price_Monitor_Sequence
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundcorner 8
+
+title 암호화폐 가격 모니터링 시스템 - Sequence Diagram
+
+actor User
+participant "Browser" as B
+participant "Authentication" as A
+participant "PriceMonitor" as P
+participant "BybitAPI" as API
+
+User -> B: 페이지 접근
+B -> A: 인증 상태 확인
+note right: sessionStorage.getItem("authOK")
+
+alt 인증되지 않음
+    A --> B: 인증 필요
+    B --> User: coin_index.html로 리다이렉트
+else 인증됨
+    A --> B: 인증 확인
+    B -> P: 초기화 (init())
+    
+    loop 매 1초마다
+        P -> API: 가격 데이터 요청
+        note right: GET /v5/market/tickers?category=spot
+        
+        API --> P: 가격 데이터 응답
+        P -> P: 가격 데이터 처리
+        note right
+          - BTC/USDT
+          - ETH/USDT
+          - XRP/USDT
+          가격 업데이트 및 변화 표시
+        end note
+        
+        P --> B: UI 업데이트
+        B --> User: 가격 표시 갱신
+    end
+end
+
+User -> B: 로그아웃 클릭
+B -> A: 세션 제거
+note right: sessionStorage.removeItem("authOK")
+A --> B: 세션 제거 완료
+B --> User: index.html로 리다이렉트
+
+@enduml

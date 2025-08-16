@@ -1,0 +1,65 @@
+@startuml Price_Monitor_Class
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundcorner 8
+
+title 암호화폐 가격 모니터링 시스템 - Class Diagram
+
+class PriceMonitor {
+  - prev_prices: Dict
+  - symbols: List
+  - update_interval: int
+  
+  + __init__()
+  + check_auth()
+  + init()
+  + get_crypto_prices()
+  - update_price_display(symbol: str, current_price: float, prev_price: float)
+}
+
+class Authentication {
+  + {static} check_auth()
+  + {static} remove_auth()
+  + {static} set_auth()
+}
+
+class BybitAPI {
+  + {static} get_tickers(category: str): Dict
+}
+
+class UIUpdater {
+  + {static} update_price_element(id: str, price: float, style: str)
+  + {static} update_timestamp()
+}
+
+enum PriceChangeStyle {
+  UP
+  DOWN
+  NEUTRAL
+}
+
+PriceMonitor --> Authentication: uses
+PriceMonitor --> BybitAPI: uses
+PriceMonitor --> UIUpdater: uses
+UIUpdater --> PriceChangeStyle: uses
+
+note right of PriceMonitor
+  주요 책임:
+  - 가격 모니터링
+  - 데이터 처리
+  - UI 업데이트 조정
+end note
+
+note right of Authentication
+  세션 스토리지 기반
+  인증 상태 관리
+end note
+
+note right of BybitAPI
+  Bybit V5 API
+  Spot 마켓 데이터
+end note
+
+@enduml

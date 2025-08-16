@@ -1,0 +1,73 @@
+@startuml Price_Monitor_Activity
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundcorner 8
+
+title 암호화폐 가격 모니터링 시스템 - Activity Diagram
+
+|브라우저|
+start
+:페이지 로드;
+
+|인증 처리|
+if (세션 인증 확인?) then (yes)
+  :인증 상태 유지;
+else (no)
+  :coin_index.html로 리다이렉트;
+  stop
+endif
+
+|초기화|
+:prev_prices 딕셔너리 초기화;
+note right
+  prev_prices = {
+    "BTCUSDT": None,
+    "ETHUSDT": None,
+    "XRPUSDT": None
+  }
+end note
+
+|가격 모니터링|
+repeat
+  :Bybit API 호출;
+  note right
+    URL: https://api.bybit.com/v5/market/tickers
+    카테고리: spot
+  end note
+  
+  if (API 응답 성공?) then (yes)
+    :가격 데이터 파싱;
+    note right
+      - symbols = ["BTCUSDT", "ETHUSDT", "XRPUSDT"]
+      - 각 심볼별 lastPrice 추출
+    end note
+    
+    |가격 업데이트|
+    repeat
+      :개별 가격 표시 업데이트;
+      note right
+        1. element_id 생성 (예: btc-price)
+        2. 이전 가격과 비교
+        3. up/down 클래스 적용
+        4. 가격 포맷팅 (BTC/ETH: 2자리, XRP: 4자리)
+      end note
+    repeat while (모든 심볼 처리 완료?) is (no)
+    
+    |시간 표시|
+    :마지막 업데이트 시간 갱신;
+    note right: HH:MM:SS 형식
+  else (no)
+    :에러 로깅;
+  endif
+  
+repeat while (페이지 활성?) is (yes)
+
+|로그아웃|
+:세션 제거;
+:index.html로 리다이렉트;
+
+stop
+
+@enduml

@@ -1,0 +1,54 @@
+@startuml Price_Monitor_Flow
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundcorner 8
+
+title 암호화폐 가격 모니터링 시스템 - Flow Chart
+
+start
+
+:페이지 로드;
+
+if (세션 인증?) then (yes)
+  :초기화 시작;
+  :prev_prices 초기화;
+  
+  repeat
+    :Bybit API 호출;
+    
+    if (API 응답?) then (성공)
+      :가격 데이터 파싱;
+      
+      repeat
+        :심볼별 처리;
+        :현재가 추출;
+        :이전 가격과 비교;
+        
+        if (가격 변화?) then (상승)
+          :상승 스타일 적용;
+        else (하락)
+          :하락 스타일 적용;
+        endif
+        
+        :가격 표시 업데이트;
+        :이전 가격 저장;
+      repeat while (남은 심볼?) is (yes)
+      
+      :업데이트 시간 표시;
+      
+    else (실패)
+      :에러 로깅;
+    endif
+    
+    :1초 대기;
+  repeat while (페이지 활성?) is (yes)
+  
+else (no)
+  :로그인 페이지로 이동;
+endif
+
+stop
+
+@enduml
