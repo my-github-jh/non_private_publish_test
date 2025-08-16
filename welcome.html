@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Welcome</title>
+  <title>Crypto Price Monitor</title>
   <style>
     body {
       margin: 0; min-height: 100svh; display: grid; place-items: center;
@@ -15,19 +15,69 @@
       box-shadow: 0 10px 26px rgba(0,0,0,.07);
       text-align: center; width: min(640px, 92vw);
     }
-    h1 { margin: 0 0 12px; font-size: 1.5rem; }
-    p { margin: 0; color: #445; }
+    h1 { margin: 0 0 24px; font-size: 1.5rem; }
+    .prices {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .price-card {
+      background: #f8faff;
+      padding: 16px;
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+    }
+    .symbol {
+      font-weight: 600;
+      color: #2c3e50;
+      text-align: left;
+    }
+    .price {
+      font-family: monospace;
+      font-size: 1.1rem;
+      color: #34495e;
+    }
+    .price.up { color: #2ecc71; }
+    .price.down { color: #e74c3c; }
     a.btn {
-      display: inline-block; margin-top: 18px; text-decoration: none;
-      padding: 10px 14px; border-radius: 12px; background: #6b86ff; color: white; font-weight: 600;
+      display: inline-block; text-decoration: none;
+      padding: 10px 14px; border-radius: 12px; 
+      background: #6b86ff; color: white; 
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    a.btn:hover {
+      background: #5a75ee;
+    }
+    .last-update {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Welcome 🎉</h1>
-    <p>정상적으로 인증되었습니다.</p>
-    <a class="btn" href="index.html" onclick="sessionStorage.removeItem('authOK')">다시 잠그기</a>
+    <h1>암호화폐 시세 모니터 🚀</h1>
+    <div class="prices">
+      <div class="price-card">
+        <span class="symbol">BTC/USDT</span>
+        <span class="price" id="btc-price">로딩 중...</span>
+      </div>
+      <div class="price-card">
+        <span class="symbol">ETH/USDT</span>
+        <span class="price" id="eth-price">로딩 중...</span>
+      </div>
+      <div class="price-card">
+        <span class="symbol">XRP/USDT</span>
+        <span class="price" id="xrp-price">로딩 중...</span>
+      </div>
+    </div>
+    <a class="btn" href="index.html" onclick="sessionStorage.removeItem('authOK')">로그아웃</a>
+    <div class="last-update" id="last-update"></div>
   </div>
 
   <script>
@@ -35,6 +85,70 @@
     if (sessionStorage.getItem("authOK") !== "1") {
       location.replace("index.html");
     }
+
+    // 이전 가격을 저장할 객체
+    const prevPrices = {
+      BTCUSDT: null,
+      ETHUSDT: null,
+      XRPUSDT: null
+    };
+
+    // 가격 업데이트 함수
+    async function updatePrices() {
+      try {
+        const symbols = ["BTCUSDT", "ETHUSDT", "XRPUSDT"];
+        const response = await fetch('https://api.bybit.com/v5/market/tickers?category=spot');
+        const data = await response.json();
+        
+        console.log('API Response:', data); // 디버깅을 위한 로그
+        
+        if (data.retCode === 0) {
+          const prices = data.result.list.filter(item => symbols.includes(item.symbol));
+          console.log('Filtered prices:', prices); // 디버깅을 위한 로그
+          
+          prices.forEach(item => {
+            const symbol = item.symbol;
+            const currentPrice = parseFloat(item.lastPrice || item.last);
+            const prevPrice = prevPrices[symbol];
+            const elementId = symbol.toLowerCase().replace('usdt', '-price');
+            const element = document.getElementById(elementId);
+            
+            if (element) {
+              // 가격 변화에 따른 클래스 설정
+              element.classList.remove('up', 'down');
+              if (prevPrice !== null) {
+                if (currentPrice > prevPrice) {
+                  element.classList.add('up');
+                } else if (currentPrice < prevPrice) {
+                  element.classList.add('down');
+                }
+              }
+              
+              // 가격 표시 (소수점 자리수 조정)
+              element.textContent = currentPrice.toLocaleString('en-US', {
+                minimumFractionDigits: symbol.startsWith('XRP') ? 4 : 2,
+                maximumFractionDigits: symbol.startsWith('XRP') ? 4 : 2
+              });
+              
+              // 현재 가격을 이전 가격으로 저장
+              prevPrices[symbol] = currentPrice;
+            }
+          });
+          
+          // 마지막 업데이트 시간 표시
+          document.getElementById('last-update').textContent = 
+            `마지막 업데이트: ${new Date().toLocaleTimeString()}`;
+        }
+      } catch (error) {
+        console.error('가격 업데이트 중 오류:', error);
+      }
+    }
+
+    // 초기 업데이트
+    updatePrices();
+
+    // 1초마다 가격 업데이트
+    setInterval(updatePrices, 1000);
   </script>
 </body>
 </html>
