@@ -12,6 +12,8 @@ on:
 jobs:
   update-readme:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # 저장소 내용을 수정할 수 있는 권한 추가
     
     steps:
       - uses: actions/checkout@v3
