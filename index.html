@@ -115,8 +115,8 @@
           // 실패 횟수 증가 및 잠금 확인
           attemptCount++;
           if (attemptCount >= 5) {
-            lockUntil = Date.now() + (60 * 1000); // 1분 잠금
-            msg.textContent = "비밀번호를 5회 틀렸습니다. 1분 후에 다시 시도해주세요.";
+            lockUntil = Date.now() + (10 * 1000); // 10초 잠금
+            msg.textContent = "비밀번호를 5회 틀렸습니다. 10초 후에 다시 시도해주세요.";
             attemptCount = 0; // 카운트 초기화
           } else {
             msg.textContent = `비밀번호가 올바르지 않습니다. (${5 - attemptCount}회 남음)`;
