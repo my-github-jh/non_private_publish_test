@@ -1,11 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
 <body>
-    
+    <script>
+        // SHA-256으로 해시된 올바른 비밀번호 ("0914*")
+        // 이 방식은 원본 비밀번호가 코드에 직접 노출되는 것을 방지합니다.
+        const correctPasswordHash = "2a518d363388619454933a819e809e40327424443a1a23253755097433509123";
+
+        /**
+         * 문자열을 SHA-256 해시로 변환하는 비동기 함수입니다.
+         * @param {string} message - 해시할 문자열
+         * @returns {Promise<string>} - 16진수 형태의 해시 문자열
+         */
+        async function sha256(message) {
+            // 문자열을 UTF-8 바이트 배열로 인코딩합니다.
+            const msgBuffer = new TextEncoder().encode(message);
+            // Web Crypto API를 사용하여 해시를 계산합니다.
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            // ArrayBuffer를 바이트 배열로 변환합니다.
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            // 바이트 배열을 16진수 문자열로 변환합니다.
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        // 비밀번호를 확인하는 메인 로직 (즉시 실행 함수)
+        (async () => {
+            const password = prompt("비밀번호를 입력하세요:");
+
+            // 사용자가 입력을 취소했거나 아무것도 입력하지 않은 경우
+            if (!password) {
+                window.location.href = "error.html";
+                return;
+            }
+
+            const inputHash = await sha256(password);
+
+            if (inputHash === correctPasswordHash) {
+                window.location.href = "welcome.html";
+            } else {
+                window.location.href = "error.html";
+            }
+        })();
+    </script>
 </body>
 </html>
