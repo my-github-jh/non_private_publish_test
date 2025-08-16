@@ -25,25 +25,16 @@
     </div>
 
     <script>
-        // SHA-256으로 해시된 올바른 비밀번호 ("0914")
-        const correctPasswordHash = "b906a3a0174b2a0684c4c0b4b6b6b1c6e0b2e3e1c6e0b2e3e1c6e0b2e3e1c6e0";
+        // 평문 비밀번호 ("0914")
+        const correctPassword = "0914";
 
-        /**
-         * 문자열을 SHA-256 해시로 변환하는 비동기 함수입니다.
-         */
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            return hashHex;
-        }
+
 
         const form = document.getElementById('password-form');
         const passwordInput = document.getElementById('password-input');
         const errorMessage = document.getElementById('error-message');
 
-        form.addEventListener('submit', async (event) => {
+        form.addEventListener('submit', (event) => {
             // 폼 제출 시 페이지가 새로고침되는 기본 동작을 막습니다.
             event.preventDefault();
 
@@ -52,15 +43,13 @@
 
             const password = passwordInput.value;
 
-            const inputHash = await sha256(password);
-
-            if (inputHash === correctPasswordHash) {
+            if (password === correctPassword) {
                 window.location.href = "welcome.html";
             } else {
                 // 비밀번호가 틀렸을 경우, 에러 메시지를 보여줍니다.
                 errorMessage.style.visibility = 'visible';
-                passwordInput.value = ''; // 입력 필드를 비웁니다.
-                passwordInput.focus();    // 다시 입력 필드에 포커스를 줍니다.
+                passwordInput.value = '';
+                passwordInput.focus();
             }
         });
     </script>
