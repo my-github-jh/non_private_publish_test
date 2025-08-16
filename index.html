@@ -63,6 +63,10 @@
     const msg = document.getElementById("msg");
     const card = document.getElementById("card");
 
+    // 비밀번호 시도 횟수와 잠금 시간을 저장
+    let attemptCount = 0;
+    let lockUntil = 0;
+
     async function sha256Hex(text) {
       const enc = new TextEncoder().encode(text);
       const digest = await crypto.subtle.digest("SHA-256", enc);
@@ -75,6 +79,15 @@
       msg.textContent = "";
       const value = input.value;
       if (!value) return;
+
+      // 잠금 시간 확인
+      const now = Date.now();
+      if (now < lockUntil) {
+        const remainingSecs = Math.ceil((lockUntil - now) / 1000);
+        msg.textContent = `${remainingSecs}초 후에 다시 시도해주세요.`;
+        input.value = "";
+        return;
+      }
 
       try {
         const hex = await sha256Hex(value);
@@ -98,6 +111,16 @@
           msg.textContent = "비밀번호가 올바르지 않습니다.";
           card.classList.remove("shake"); // 재생성 위한 토글
           void card.offsetWidth;
+          
+          // 실패 횟수 증가 및 잠금 확인
+          attemptCount++;
+          if (attemptCount >= 5) {
+            lockUntil = Date.now() + (60 * 1000); // 1분 잠금
+            msg.textContent = "비밀번호를 5회 틀렸습니다. 1분 후에 다시 시도해주세요.";
+            attemptCount = 0; // 카운트 초기화
+          } else {
+            msg.textContent = `비밀번호가 올바르지 않습니다. (${5 - attemptCount}회 남음)`;
+          }
           card.classList.add("shake");
           input.value = "";
           input.focus();
